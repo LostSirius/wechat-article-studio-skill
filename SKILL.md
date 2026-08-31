@@ -132,6 +132,10 @@ Build:
 python scripts/build.py manuscript.json --output-dir output
 ```
 
+When approved HTTPS or WeChat CDN URLs are available for local assets, provide a JSON
+source-to-URL map with `--cdn-map cdn_map.json`. The preview may also load
+`output/cdn_map.json` automatically.
+
 The build pipeline produces:
 
 - `article.fragment.html` — clean WeChat body fragment;
@@ -146,6 +150,10 @@ The build pipeline produces:
 Follow [guides/images.md](guides/images.md).
 
 - When a local image folder is supplied, generate EXIF-corrected web copies with `scripts/prepare_images.py`; keep originals untouched.
+- A browser can render `file://` and relative images from the user's computer, but clipboard
+  HTML does not contain those image files. Never describe such a preview as paste-ready.
+- Classify each source before delivery: local/relative images require upload; non-WeChat
+  HTTPS images require transfer; only verified `mmbiz.qpic.cn` images are publication-ready.
 - Correct EXIF rotation before judging orientation.
 - Inspect every original, not only the existing GIF.
 - Decide a target aspect ratio per image group.
@@ -174,6 +182,7 @@ Required gates:
 
 - no forbidden tags, attributes, or strict-profile CSS;
 - no missing image source or broken local path;
+- no unresolved local/relative image when the user expects one-click copy/paste delivery;
 - all slideshow frames have identical dimensions;
 - no unsupported factual placeholder presented as fact;
 - all approved source paragraphs represented;
@@ -217,7 +226,12 @@ Give the user:
 - processed asset paths;
 - audit result and what was visually reviewed;
 - unresolved placeholders or facts;
-- exact WeChat handoff: open preview → wait for images → copy article → paste into editor → transfer external images to WeChat CDN → phone preview.
+- explicit image state: local / external HTTPS / WeChat CDN;
+- exact WeChat handoff: upload or map local images → copy the layout → paste into the editor
+  → transfer/re-upload every non-WeChat image → confirm `mmbiz.qpic.cn` → phone preview.
 
-Do not say external images are safely published merely because they appear in the editor. Final public images should resolve from `mmbiz.qpic.cn` or the official material library.
+The copy action copies HTML layout and image URLs, not local image binaries. Do not say
+images are safely pasted or published merely because they appear in the browser or desktop
+editor. Final public images should resolve from `mmbiz.qpic.cn` or the official material
+library.
 

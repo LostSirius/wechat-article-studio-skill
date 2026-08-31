@@ -77,8 +77,11 @@ report. Screenshots are optional when Chrome or Edge is available.
 ## Important limits
 
 A static score of 100 means only that the encoded audit rules passed. It is not WeChat
-certification. Before publishing, paste into the WeChat editor, transfer images to the
-official material library, confirm final `mmbiz.qpic.cn` delivery, and run a phone preview.
+certification. The copy button copies HTML layout and image URLs, not local JPG, PNG, or GIF
+files. The preview disables copying when unresolved local/relative images remain. An optional
+`--cdn-map cdn_map.json` can substitute approved HTTPS URLs, but non-WeChat URLs still require
+transfer/re-upload in the editor. Before publishing, confirm final `mmbiz.qpic.cn` delivery
+and run a phone preview.
 The project does not claim SOTA; public tests are synthetic engineering regressions, not a
 blinded editorial benchmark.
 

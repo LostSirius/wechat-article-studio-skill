@@ -47,17 +47,53 @@ Use hex colors. Keep the copied fragment functional even if optional properties 
 
 Preview-only code must stay outside the article root.
 
+## Critical image handoff rule
+
+The copy button copies HTML and image URL strings. It does **not** place local JPG, PNG, or
+GIF binary data on the clipboard.
+
+Consequences:
+
+- `file://`, relative, `blob:`, and `data:` sources may look correct in the local browser but
+  cannot be treated as WeChat-ready;
+- ordinary HTTPS images may paste temporarily, but they remain externally hosted and must be
+  transferred or re-uploaded in the WeChat editor;
+- only a verified WeChat material-library URL on `mmbiz.qpic.cn` can be
+  treated as publication-ready, and it still requires a phone preview.
+
+The generated preview disables its copy button while unresolved local/relative images remain.
+Do not remove this guard merely to make the workflow appear one-click.
+
 ## Copy workflow
 
-1. Open `article.preview.html` in Chrome or Edge.
-2. Wait until all images finish loading.
-3. Click “复制到公众号”.
+1. Open `article.preview.html` in Chrome or Edge and read the image-source notice.
+2. If copying is disabled, upload the local files and supply a `cdn_map.json`, or plan to
+   insert the corresponding assets manually from the WeChat material library.
+3. Click “复制排版到公众号”; this copies layout, text, and usable URLs—not image files.
 4. Paste into a new WeChat article.
-5. Transfer/re-upload every external image to the WeChat material library.
-6. Confirm image URLs resolve from `mmbiz.qpic.cn`.
+5. Transfer/re-upload every non-WeChat image to the WeChat material library.
+6. Confirm final image URLs resolve from `mmbiz.qpic.cn`.
 7. Preview on at least one phone before publication.
 
 An image appearing in the desktop editor does not prove it will appear in public preview.
+
+### Optional CDN map
+
+Use a JSON object whose keys are original sources or filenames and whose values are approved
+HTTPS URLs:
+
+```json
+{
+  "photo.jpg": "https://example.org/photo.jpg"
+}
+```
+
+```bash
+python scripts/build.py manuscript.json --output-dir output --cdn-map cdn_map.json
+```
+
+The map makes clipboard HTML reference the mapped URL. It does not transfer that URL into
+WeChat; a non-`mmbiz.qpic.cn` value still requires editor-side transfer/re-upload.
 
 ## Image source states
 

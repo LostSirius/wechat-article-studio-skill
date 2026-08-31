@@ -76,22 +76,27 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("manuscript", type=Path)
     parser.add_argument("--output-dir", type=Path, default=Path("output"))
+    parser.add_argument("--cdn-map", type=Path)
     parser.add_argument("--browser")
     parser.add_argument("--screenshot-height", type=int, default=12000)
     parser.add_argument("--no-screenshots", action="store_true")
     args = parser.parse_args()
     output = args.output_dir.resolve()
     output.mkdir(parents=True, exist_ok=True)
+    cdn_map_path = args.cdn_map.resolve() if args.cdn_map else output / "cdn_map.json"
+    if args.cdn_map and not cdn_map_path.exists():
+        raise FileNotFoundError(f"CDN map not found: {cdn_map_path}")
 
-    run(
-        [
-            sys.executable,
-            str(SCRIPTS / "render.py"),
-            str(args.manuscript.resolve()),
-            "--output-dir",
-            str(output),
-        ]
-    )
+    render_command = [
+        sys.executable,
+        str(SCRIPTS / "render.py"),
+        str(args.manuscript.resolve()),
+        "--output-dir",
+        str(output),
+    ]
+    if cdn_map_path.exists():
+        render_command.extend(["--cdn-map", str(cdn_map_path)])
+    run(render_command)
     fragment = output / "article.fragment.html"
     preview = output / "article.preview.html"
     audit_result = run(
@@ -131,6 +136,7 @@ def main() -> int:
     report = {
         "manuscript": str(args.manuscript.resolve()),
         "output_dir": str(output),
+        "cdn_map": str(cdn_map_path) if cdn_map_path.exists() else None,
         "fragment": str(fragment),
         "preview": str(preview),
         "audit": str(audit_path),

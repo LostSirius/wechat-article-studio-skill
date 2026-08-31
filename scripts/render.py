@@ -402,8 +402,29 @@ class Renderer:
         return fragment, report
 
 
-def preview_document(fragment: str, title: str) -> str:
+def load_cdn_map(path: Path | None) -> dict[str, str]:
+    if path is None or not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("CDN map must be a JSON object of source-to-HTTPS URL pairs")
+    return {
+        str(key): str(value)
+        for key, value in data.items()
+        if str(value).startswith("https://")
+    }
+
+
+def preview_document(
+    fragment: str, title: str, cdn_map: dict[str, str] | None = None
+) -> str:
     escaped_title = esc(title)
+    cdn_json = (
+        json.dumps(cdn_map or {}, ensure_ascii=False)
+        .replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+    )
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -412,34 +433,115 @@ def preview_document(fragment: str, title: str) -> str:
 <title>{escaped_title} · 公众号预览</title>
 <style>
 body{{margin:0;background:#e9e6e1;font-family:Arial,sans-serif}}
-.bar{{position:sticky;top:0;z-index:9;padding:10px;text-align:center;background:#1f2937;color:#fff}}
+.bar{{position:sticky;top:0;z-index:9;padding:10px 14px;text-align:center;background:#1f2937;color:#fff}}
 .bar button{{border:0;border-radius:6px;padding:9px 18px;background:#fff;color:#111;cursor:pointer}}
+.bar button:disabled{{cursor:not-allowed;opacity:.45}}
 #article-root{{max-width:677px;margin:18px auto;background:#fff}}
-.hint{{font-size:12px;opacity:.75;margin-left:10px}}
+.hint{{display:block;font-size:12px;line-height:1.6;margin-top:6px}}
+.notice{{max-width:649px;margin:12px auto 0;padding:10px 14px;border-radius:6px;font-size:13px;line-height:1.65;box-sizing:border-box}}
+.notice-danger{{color:#7f1d1d;background:#fef2f2;border:1px solid #fecaca}}
+.notice-warn{{color:#78350f;background:#fffbeb;border:1px solid #fde68a}}
+.notice-ok{{color:#14532d;background:#f0fdf4;border:1px solid #bbf7d0}}
 </style>
 </head>
 <body>
-<div class="bar"><button onclick="copyArticle()">复制到公众号</button><span class="hint" id="status">请先等待图片加载</span></div>
+<div class="bar"><button id="copy-button" onclick="copyArticle()">复制排版到公众号</button><span class="hint" id="status">正在检查图片来源…</span></div>
+<div class="notice notice-warn" id="asset-notice">浏览器预览能显示图片，不代表微信编辑器能够接收图片。</div>
 <div id="article-root">{fragment}</div>
 <script>
+const CDN = {cdn_json};
+const ROOT = document.getElementById('article-root');
+const COPY_BUTTON = document.getElementById('copy-button');
+const STATUS = document.getElementById('status');
+const NOTICE = document.getElementById('asset-notice');
+const WECHAT_CDN = /^https:\\/\\/mmbiz\\.qpic\\.cn\\//i;
+
+function resolveCdn(src){{
+ if(!src) return '';
+ if(CDN[src]) return CDN[src];
+ let decoded=src;
+ try{{decoded=decodeURIComponent(src);}}catch(e){{}}
+ if(CDN[decoded]) return CDN[decoded];
+ const name=decoded.split('/').pop()||'';
+ return CDN[name]||'';
+}}
+
+function classifyAssets(root){{
+ const result={{local:[],external:[],ready:[],mapped:[]}};
+ root.querySelectorAll('img').forEach((img)=>{{
+  const raw=img.getAttribute('src')||'';
+  const mapped=resolveCdn(raw)||resolveCdn(img.src);
+  const src=mapped||raw;
+  const item={{src:src,alt:img.getAttribute('alt')||'未命名图片'}};
+  if(mapped) result.mapped.push(item);
+  if(WECHAT_CDN.test(src)) result.ready.push(item);
+  else if(/^https?:\\/\\//i.test(src)) result.external.push(item);
+  else result.local.push(item);
+ }});
+ return result;
+}}
+
+function showAssetNotice(){{
+ const assets=classifyAssets(ROOT);
+ NOTICE.className='notice ';
+ if(assets.local.length){{
+  COPY_BUTTON.disabled=true;
+  NOTICE.className+='notice-danger';
+  NOTICE.textContent=`检测到 ${{assets.local.length}} 张本地、相对或内嵌图片。复制 HTML 不会复制图片文件；请先上传图片并提供 cdn_map.json，或在微信素材库中手动重新插入。`;
+  STATUS.textContent='图片尚未具备可粘贴链接，已禁用复制';
+ }}else if(assets.external.length){{
+  COPY_BUTTON.disabled=false;
+  NOTICE.className+='notice-warn';
+  NOTICE.textContent=`检测到 ${{assets.external.length}} 张非微信外链图片。可以复制排版，但粘贴后必须在微信编辑器中转存/重传，并确认最终地址来自 mmbiz.qpic.cn。`;
+  STATUS.textContent='可复制排版；图片仍需转存到微信素材库';
+ }}else if(assets.ready.length){{
+  COPY_BUTTON.disabled=false;
+  NOTICE.className+='notice-ok';
+  NOTICE.textContent=`检测到 ${{assets.ready.length}} 张微信 CDN 图片。复制后仍需进行手机预览，确认图片和 GIF 均正常。`;
+  STATUS.textContent='图片来源已就绪，可复制排版';
+ }}else{{
+  COPY_BUTTON.disabled=false;
+  NOTICE.className+='notice-ok';
+  NOTICE.textContent='正文不含图片，可以直接复制排版。';
+  STATUS.textContent='可复制排版';
+ }}
+}}
+
 async function copyArticle(){{
- const root=document.getElementById('article-root');
- const html=root.innerHTML;
- const text=root.innerText;
+ const clone=ROOT.cloneNode(true);
+ clone.querySelectorAll('img').forEach((img)=>{{
+  const mapped=resolveCdn(img.getAttribute('src')||'')||resolveCdn(img.src);
+  if(mapped) img.setAttribute('src',mapped);
+ }});
+ const assets=classifyAssets(clone);
+ if(assets.local.length){{
+  STATUS.textContent='复制已阻止：仍有本地图片无法随 HTML 粘贴';
+  return;
+ }}
+ const html=clone.innerHTML;
+ const text=ROOT.innerText;
  try{{
   await navigator.clipboard.write([new ClipboardItem({{
    'text/html':new Blob([html],{{type:'text/html'}}),
    'text/plain':new Blob([text],{{type:'text/plain'}})
   }})]);
-  document.getElementById('status').textContent='已复制，请粘贴到公众号编辑器';
+  STATUS.textContent=assets.external.length
+   ?`已复制排版；粘贴后必须转存/重传 ${{assets.external.length}} 张图片`
+   :'已复制排版；请在微信中完成手机预览';
  }}catch(e){{
-  const range=document.createRange();range.selectNodeContents(root);
+  const holder=document.createElement('div');
+  holder.appendChild(clone);
+  holder.style.position='fixed';
+  holder.style.left='-9999px';
+  document.body.appendChild(holder);
+  const range=document.createRange();range.selectNodeContents(holder);
   const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
   document.execCommand('copy');sel.removeAllRanges();
-  document.getElementById('status').textContent='已复制（兼容模式）';
+  holder.remove();
+  STATUS.textContent='已复制排版（兼容模式）；外链图片仍需转存/重传';
  }}
 }}
-window.addEventListener('load',()=>{{document.getElementById('status').textContent='图片加载完成，可复制';}});
+window.addEventListener('load',showAssetNotice);
 </script>
 </body>
 </html>
@@ -450,6 +552,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("manuscript", type=Path)
     parser.add_argument("--output-dir", type=Path, default=Path("output"))
+    parser.add_argument("--cdn-map", type=Path)
     args = parser.parse_args()
     data = json.loads(args.manuscript.read_text(encoding="utf-8"))
     renderer = Renderer(data)
@@ -458,8 +561,12 @@ def main() -> int:
     fragment_path = args.output_dir / "article.fragment.html"
     preview_path = args.output_dir / "article.preview.html"
     report_path = args.output_dir / "article.render-report.json"
+    cdn_map = load_cdn_map(args.cdn_map or (args.output_dir / "cdn_map.json"))
     fragment_path.write_text(fragment, encoding="utf-8")
-    preview_path.write_text(preview_document(fragment, str(data.get("title", "公众号文章"))), encoding="utf-8")
+    preview_path.write_text(
+        preview_document(fragment, str(data.get("title", "公众号文章")), cdn_map),
+        encoding="utf-8",
+    )
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(fragment_path)
     print(preview_path)

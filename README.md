@@ -140,6 +140,9 @@ python3 scripts/build.py examples/manuscript.json --output-dir output --no-scree
 python3 scripts/audit.py output/article.fragment.html --manuscript examples/manuscript.json
 ```
 
+如需在复制时把本地图片路径替换为已批准的 HTTPS 地址，可增加
+`--cdn-map cdn_map.json`。这只替换 URL，不会自动上传图片到微信。
+
 输入是结构化 JSON：
 
 ```json
@@ -176,8 +179,8 @@ python3 scripts/audit.py output/article.fragment.html --manuscript examples/manu
 ## 脚本命令
 
 ```text
-python scripts/build.py MANUSCRIPT --output-dir output [--no-screenshots]
-python scripts/render.py MANUSCRIPT --output-dir output
+python scripts/build.py MANUSCRIPT --output-dir output [--cdn-map MAP] [--no-screenshots]
+python scripts/render.py MANUSCRIPT --output-dir output [--cdn-map MAP]
 python scripts/audit.py FRAGMENT --manuscript MANUSCRIPT [--json]
 python scripts/prepare_images.py INPUT_DIR OUTPUT_DIR
 python scripts/slideshow.py MANIFEST [--force]
@@ -190,8 +193,10 @@ python scripts/hygiene.py . --json
 ## 微信的真实限制
 
 - 微信编辑器可能过滤标签、属性和 CSS；本项目采用的严格配置是保守基线，不是官方规范。
-- 外部 HTTPS、本地相对路径或本地文件即使在桌面预览可见，也不代表公开发布可见。
-- 发布前仍需：打开预览 → 等待图片 → 复制正文 → 粘贴微信编辑器 → 转存/重传图片 → 确认最终图片来自 `mmbiz.qpic.cn` 或官方素材库 → 手机预览。
+- **复制按钮复制的是 HTML 排版和图片 URL，不会复制本地 JPG、PNG、GIF 文件。**
+- `file://`、相对路径、`blob:` 或 `data:` 图片即使在桌面预览可见，也不能据此认为可以粘贴到微信；新预览页会在发现此类未解析图片时禁用复制。
+- 普通 HTTPS 图片可能暂时粘贴成功，但仍需在微信编辑器内转存/重传。
+- 发布前仍需：解决本地图片 → 复制排版 → 粘贴微信编辑器 → 转存/重传非微信图片 → 确认最终图片来自 `mmbiz.qpic.cn` 或官方素材库 → 手机预览。
 - GIF 仍受文件体积、256 色和编辑器上传限制。
 - 静态兼容分 100 只表示当前审计规则全部通过，**不等于微信官方认证**。
 

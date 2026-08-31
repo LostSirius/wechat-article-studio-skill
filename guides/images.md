@@ -40,6 +40,22 @@ python scripts/prepare_images.py original-images web-images
 
 This corrects EXIF orientation, converts color to sRGB, embeds an sRGB ICC profile, exports JPEG with 4:4:4 chroma, limits the long edge, and writes a report. It never overwrites originals. Use the web copies in the manuscript; use originals only as the source for a new crop/GIF.
 
+## Clipboard and WeChat delivery
+
+Keep image preparation separate from image delivery:
+
+- a web copy is an optimized local file, not an uploaded WeChat asset;
+- seeing a `file://` or relative image in `article.preview.html` proves only that the local
+  browser can read the user's disk;
+- copying article HTML carries the `<img src="...">` reference, not the file bytes;
+- a CDN map can replace local references with HTTPS URLs during copying, but ordinary HTTPS
+  URLs still need transfer/re-upload in the WeChat editor;
+- final acceptance requires `mmbiz.qpic.cn` (or a confirmed material-library asset) plus a
+  phone preview.
+
+If local images remain unresolved, the preview must disable copying and tell the user which
+handoff is still required. Never use “图片加载完成” as evidence that the images are paste-ready.
+
 ## Caption rules
 
 - State visible person/action/place.

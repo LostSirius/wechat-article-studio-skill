@@ -59,8 +59,12 @@ def render_fixtures(temp: Path) -> list[dict]:
         preview = (output / "article.preview.html").read_text(encoding="utf-8")
         if "<script" in fragment or "<style" in fragment:
             raise AssertionError(f"{fixture.name} leaked preview code into fragment")
-        if "复制到公众号" not in preview:
+        if "复制排版到公众号" not in preview:
             raise AssertionError(f"{fixture.name} preview has no copy action")
+        if "复制 HTML 不会复制图片文件" not in preview:
+            raise AssertionError(f"{fixture.name} preview has no local-image warning")
+        if "COPY_BUTTON.disabled=true" not in preview:
+            raise AssertionError(f"{fixture.name} preview has no unresolved-image guard")
         build_report = json.loads((output / "build-report.json").read_text(encoding="utf-8"))
         if build_report["screenshot_status"] != "disabled":
             raise AssertionError(f"{fixture.name} build report has wrong screenshot status")
@@ -97,6 +101,43 @@ def invalid_fragment_test(temp: Path) -> None:
     alt_report = json.loads(result.stdout)
     if not any(item["code"] == "missing-alt" for item in alt_report["fatal"]):
         raise AssertionError("missing image alt was not fatal")
+
+
+def cdn_map_test(temp: Path) -> dict:
+    manuscript = json.loads((EVALS / "academic-news.json").read_text(encoding="utf-8"))
+    local_src = "file:" + "///C:/article/web-images/photo.jpg"
+    mapped_src = "https://example.invalid/photo.jpg"
+    manuscript["hero"] = {"src": local_src, "alt": "Synthetic local image"}
+    manuscript_path = temp / "cdn-manuscript.json"
+    manuscript_path.write_text(
+        json.dumps(manuscript, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    cdn_map_path = temp / "cdn_map.json"
+    cdn_map_path.write_text(
+        json.dumps({local_src: mapped_src}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    output = temp / "cdn-output"
+    run(
+        [
+            sys.executable,
+            str(SCRIPTS / "render.py"),
+            str(manuscript_path),
+            "--output-dir",
+            str(output),
+            "--cdn-map",
+            str(cdn_map_path),
+        ]
+    )
+    fragment = (output / "article.fragment.html").read_text(encoding="utf-8")
+    preview = (output / "article.preview.html").read_text(encoding="utf-8")
+    if local_src not in fragment:
+        raise AssertionError("fragment should preserve the manuscript image source")
+    if mapped_src not in preview:
+        raise AssertionError("preview did not embed the approved CDN mapping")
+    if "classifyAssets" not in preview or "COPY_BUTTON.disabled=true" not in preview:
+        raise AssertionError("preview did not embed image-source safeguards")
+    return {"mapping_embedded": True, "local_source_preserved": True}
 
 
 def slideshow_test(temp: Path) -> dict:
@@ -176,6 +217,7 @@ def main() -> int:
         hygiene_result = run([sys.executable, str(SCRIPTS / "hygiene.py"), str(ROOT), "--json"])
         hygiene_report = json.loads(hygiene_result.stdout)
         result = {"fixtures": fixture_reports, "invalid_html_rejected": True, "repository_hygiene": hygiene_report["files_clean"]}
+        result["cdn_map"] = cdn_map_test(temp)
         result["image_prepare"] = image_prepare_test(temp)
         if args.with_slideshow:
             result["slideshow"] = slideshow_test(temp)

@@ -10,6 +10,7 @@ and uses semantic versioning for public releases.
 - Third-party dependency and generated-artwork license notices.
 - Monthly Dependabot checks for Python packages and GitHub Actions.
 - macOS to the Python 3.10/3.12 CI matrix.
+- Optional `cdn_map.json` substitution for local image sources during preview copying.
 
 ### Changed
 
@@ -19,6 +20,9 @@ and uses semantic versioning for public releases.
 - Reworked the banner and icon with a bilingual WeChat Article Studio wordmark.
 - Grouped editorial guidance under `guides/`, repository policies under `.github/`, and
   supplemental legal notes under `docs/legal/`.
+- Preview pages now distinguish local, external HTTPS, and WeChat CDN images, disable copying
+  for unresolved local sources, and state explicitly that clipboard HTML contains no image
+  file bytes.
 
 ## [0.1.0] - 2026-08-31
 
