@@ -1,0 +1,29 @@
+name: Feature request
+description: Propose a content, rendering, image, or audit improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Editorial or workflow problem
+      description: Describe the content problem, not only a visual preference
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Contribution boundaries
+      options:
+        - label: "The proposal does not require copied third-party templates or private data."
+          required: true

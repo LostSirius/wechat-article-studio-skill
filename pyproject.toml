@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wechat-article-studio-skill"
+description = "Local editorial, image, rendering, and audit tools for WeChat Official Account articles"
+readme = "README_EN.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "LostSirius" }]
+dependencies = [
+  "Pillow>=12.2,<13",
+  "imageio-ffmpeg>=0.6,<0.7",
+]
+dynamic = ["version"]
+
+[project.scripts]
+wechat-article-build = "wechat_article_studio.build:main"
+wechat-article-render = "wechat_article_studio.render:main"
+wechat-article-audit = "wechat_article_studio.audit:main"
+wechat-article-images = "wechat_article_studio.prepare_images:main"
+wechat-article-slideshow = "wechat_article_studio.slideshow:main"
+wechat-article-hygiene = "wechat_article_studio.hygiene:main"
+
+[tool.setuptools]
+packages = ["wechat_article_studio"]
+package-dir = { wechat_article_studio = "scripts" }
+
+[tool.setuptools.dynamic]
+version = { attr = "wechat_article_studio.__version__" }
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100

@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If this project helps your work, cite the repository and the commit you used."
+title: "WeChat Article Studio"
+type: software
+version: "0.1.0"
+authors:
+  - name: "LostSirius"
+license: MIT
+date-released: 2026-08-31
+repository-code: "https://github.com/LostSirius/wechat-article-studio-skill"
+url: "https://github.com/LostSirius/wechat-article-studio-skill"
+abstract: "An independently implemented local editorial and compatibility workflow for WeChat Official Account articles."
+keywords:
+  - WeChat Official Account
+  - editorial workflow
+  - HTML compatibility
+  - Chinese writing
