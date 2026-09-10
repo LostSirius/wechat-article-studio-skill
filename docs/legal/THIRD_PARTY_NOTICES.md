@@ -15,4 +15,4 @@ The workflow can optionally invoke a user-installed Chrome/Edge browser or FFmpe
 Those programs are not bundled, and their licenses depend on the product and FFmpeg build
 selected by the user. Installing this project does not install or relicense them.
 
-Conceptual research references are documented separately in [NOTICE.md](../../NOTICE.md).
+Conceptual research references are documented separately in [NOTICE.md](NOTICE.md).

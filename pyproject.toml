@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "wechat-article-studio-skill"
 description = "Local editorial, image, rendering, and audit tools for WeChat Official Account articles"
-readme = "README_EN.md"
+readme = "docs/README_EN.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
 authors = [{ name = "LostSirius" }]

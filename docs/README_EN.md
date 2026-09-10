@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/wechat-article-studio-banner.png" alt="WeChat Article Studio banner" width="100%">
+  <img src="../assets/wechat-article-studio-banner.png" alt="WeChat Article Studio banner" width="100%">
 </p>
 
 # WeChat Article Studio
@@ -9,10 +9,10 @@ Chinese editorial revision, content-shaped layouts, image preparation, conservat
 inline HTML, deterministic audits, and explicit publishing handoff.
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![License MIT](https://img.shields.io/badge/License-MIT-2f855a)](LICENSE)
+[![License MIT](https://img.shields.io/badge/License-MIT-2f855a)](../LICENSE)
 [![CI](https://github.com/LostSirius/wechat-article-studio-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/LostSirius/wechat-article-studio-skill/actions/workflows/ci.yml)
 
-[GitHub](https://github.com/LostSirius/wechat-article-studio-skill) · [中文](README.md) · [Architecture](docs/ARCHITECTURE.md) · [Compatibility](docs/WECHAT-COMPATIBILITY.md) · [Benchmark](docs/BENCHMARK.md)
+[GitHub](https://github.com/LostSirius/wechat-article-studio-skill) · [中文](../README.md) · [Architecture](ARCHITECTURE.md) · [Compatibility](WECHAT-COMPATIBILITY.md) · [Benchmark](BENCHMARK.md)
 
 ## What makes it different
 
@@ -94,7 +94,7 @@ Then set `theme` (and optional `style` overrides) in the manuscript:
 {"theme": "campus", "style": {"heading": "pill", "density": "airy", "palette": {"accent": "#2f8f6b"}}}
 ```
 
-See [guides/layout.md](guides/layout.md) for every knob and for the brief-to-knob table.
+See [guides/layout.md](../guides/layout.md) for every knob and for the brief-to-knob table.
 
 ## Important limits
 
@@ -117,9 +117,9 @@ The current maintainer and code owner is [LostSirius](https://github.com/LostSir
 ## Attribution and license
 
 The implementation is independent and MIT-licensed. Public projects that informed ideas
-are linked in [NOTICE.md](NOTICE.md) and [guides/research.md](guides/research.md); runtime
+are linked in [NOTICE.md](legal/NOTICE.md) and [guides/research.md](../guides/research.md); runtime
 dependencies are listed in
-[docs/legal/THIRD_PARTY_NOTICES.md](docs/legal/THIRD_PARTY_NOTICES.md), and artwork terms
-are in [docs/legal/ASSETS-LICENSE.md](docs/legal/ASSETS-LICENSE.md). No third-party code or
+[docs/legal/THIRD_PARTY_NOTICES.md](legal/THIRD_PARTY_NOTICES.md), and artwork terms
+are in [docs/legal/ASSETS-LICENSE.md](legal/ASSETS-LICENSE.md). No third-party code or
 theme template is included. This project is not affiliated with or endorsed by Tencent or
 WeChat, and its generated brand artwork contains no official WeChat logo.

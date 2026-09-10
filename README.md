@@ -11,7 +11,7 @@
 [![CI](https://github.com/LostSirius/wechat-article-studio-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/LostSirius/wechat-article-studio-skill/actions/workflows/ci.yml)
 [![Eight presets](https://img.shields.io/badge/Presets-8%20styles%20%2B%20overrides-c4a06a)](guides/layout.md)
 
-[GitHub](https://github.com/LostSirius/wechat-article-studio-skill) · [English](README_EN.md) · [架构](docs/ARCHITECTURE.md) · [微信兼容边界](docs/WECHAT-COMPATIBILITY.md) · [评测方法](docs/BENCHMARK.md)
+[GitHub](https://github.com/LostSirius/wechat-article-studio-skill) · [English](docs/README_EN.md) · [架构](docs/ARCHITECTURE.md) · [微信兼容边界](docs/WECHAT-COMPATIBILITY.md) · [评测方法](docs/BENCHMARK.md)
 
 ## 定位
 
@@ -247,15 +247,21 @@ python scripts/hygiene.py . --json
 
 ```text
 .
-├── SKILL.md
+├── SKILL.md                    # Skill 入口，Cursor 直接读取
+├── README.md                   # 本文件；英文版在 docs/README_EN.md
+├── LICENSE · CITATION.cff      # 许可证与引用信息（GitHub 要求置于根目录）
+├── pyproject.toml · requirements.txt
 ├── guides/                     # 编辑、排版、图片、质量与研究方法
 ├── scripts/                    # 8 个 CLI + 1 个版本模块
 ├── evals/                      # 4 个匿名合成夹具
 ├── examples/manuscript.json
 ├── assets/                     # 1600×450 横幅与 512×512 图标
-├── docs/                       # 架构、兼容性、评测与法律说明
+├── docs/                       # 英文 README、CHANGELOG、架构、兼容性、评测
+│   └── legal/                  # NOTICE、第三方依赖与品牌图授权
 └── .github/                    # CI、贡献、安全、Issue 与 PR 模板
 ```
+
+根目录只保留 GitHub 或打包工具要求就位的文件；其余说明文档一律在 `docs/` 与 `guides/` 下。
 
 ## 路线图
 
@@ -282,7 +288,7 @@ python scripts/hygiene.py . --json
 [min-skill](https://github.com/limin112/min-skill)、
 [lieflat-less-ai-tone](https://github.com/larashero3-dotcom/lieflat-less-ai-tone) 和
 [de-aigc-ch](https://github.com/hongcha1101/de-aigc-ch)。
-许可证边界见 [NOTICE.md](NOTICE.md)，运行时依赖见
+许可证边界见 [NOTICE.md](docs/legal/NOTICE.md)，运行时依赖见
 [docs/legal/THIRD_PARTY_NOTICES.md](docs/legal/THIRD_PARTY_NOTICES.md)，品牌图授权见
 [docs/legal/ASSETS-LICENSE.md](docs/legal/ASSETS-LICENSE.md)。
 

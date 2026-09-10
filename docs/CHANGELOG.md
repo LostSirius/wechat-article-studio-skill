@@ -25,6 +25,8 @@ and uses semantic versioning for public releases.
 
 ### Changed
 
+- Moved `README_EN.md` and `CHANGELOG.md` into `docs/` and `NOTICE.md` into `docs/legal/`,
+  leaving only files that GitHub or packaging tools require at the repository root.
 - The layout guide now states that the user's brief decides the visual direction and maps
   common Chinese mood words to presets and knobs; SKILL.md no longer defaults silently to
   `academy` for non-institutional content.

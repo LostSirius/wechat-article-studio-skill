@@ -27,7 +27,7 @@ rechecked before relying on them:
 - [hongcha1101/de-aigc-ch](https://github.com/hongcha1101/de-aigc-ch), MIT.
 
 Reference does not imply endorsement, compatibility, or joint authorship. See
-[guides/research.md](guides/research.md) for the specific conceptual boundaries.
+[guides/research.md](../../guides/research.md) for the specific conceptual boundaries.
 
 ## Brand artwork
 
