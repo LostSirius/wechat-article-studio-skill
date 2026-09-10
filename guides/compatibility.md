@@ -38,12 +38,16 @@ Use hex colors. Keep the copied fragment functional even if optional properties 
 
 `article.fragment.html` contains only the copied article root `<section>`.
 
+`article.noimage.html` is the same fragment with every image replaced by a numbered dashed
+slot that shows the alt text and file name. `article.import.html` wraps the fragment in a
+minimal HTML document for editors that import files.
+
 `article.preview.html` may contain:
 
 - document shell;
 - responsive preview frame;
-- copy button;
-- JavaScript that copies the article root.
+- copy and download buttons;
+- JavaScript that copies the article root or the no-image version.
 
 Preview-only code must stay outside the article root.
 
@@ -61,19 +65,56 @@ Consequences:
 - only a verified WeChat material-library URL on `mmbiz.qpic.cn` can be
   treated as publication-ready, and it still requires a phone preview.
 
-The generated preview disables its copy button while unresolved local/relative images remain.
-Do not remove this guard merely to make the workflow appear one-click.
+The generated preview disables the image-bearing copy button while unresolved local/relative
+images remain, but it always offers the no-image copy and the HTML downloads. Do not remove
+the guard merely to make the workflow appear one-click; route the user to the path below
+that matches their image state.
 
-## Copy workflow
+## Three delivery routes
+
+Tell the user which route applies. All three end with a phone preview.
+
+### Route A — copy with image links
+
+Use when every image already has an HTTPS URL (WeChat CDN, or an approved host plus
+`cdn_map.json`).
 
 1. Open `article.preview.html` in Chrome or Edge and read the image-source notice.
-2. If copying is disabled, upload the local files and supply a `cdn_map.json`, or plan to
-   insert the corresponding assets manually from the WeChat material library.
-3. Click “复制排版到公众号”; this copies layout, text, and usable URLs—not image files.
-4. Paste into a new WeChat article.
-5. Transfer/re-upload every non-WeChat image to the WeChat material library.
-6. Confirm final image URLs resolve from `mmbiz.qpic.cn`.
-7. Preview on at least one phone before publication.
+2. Click “复制排版（含图片链接）”; this copies layout, text, and image URLs—not files.
+3. Paste into a new WeChat article.
+4. Transfer/re-upload every non-WeChat image inside the editor and confirm the final URLs
+   resolve from `mmbiz.qpic.cn`.
+
+### Route B — copy without images, insert from the material library
+
+Use when the images only exist on the user's computer and no upload host is available. This
+is the default answer to “图片粘贴不过去”.
+
+1. Upload the prepared web images to the WeChat material library first, in article order.
+2. Click “复制无图版本”. Every image becomes a dashed slot reading “图 N · 此处插入图片”
+   with its alt text and file name; captions stay attached below the slot.
+3. Paste into the WeChat editor.
+4. Place the cursor in each slot, insert the matching library image, then delete the slot text.
+5. Check that captions still sit under the right images.
+
+`article.noimage.html` on disk is the same content for users who prefer a file.
+
+### Route C — import HTML into a third-party editor
+
+Use when the user works in 135编辑器 or 秀米 rather than the native editor. Click
+“下载 HTML” (or “下载无图 HTML”) or use `article.import.html` from the build folder.
+
+- **135编辑器**: open the toolbar 【HTML】 button to enter code mode, paste the body of the
+  file (the root `<section>`), then click 【HTML】 again to return to the visual editor. The
+  “导入文章” panel can also accept an HTML file in current versions. Images still need to
+  be replaced by editor-hosted or WeChat-hosted copies.
+- **秀米**: there is no stable whole-article HTML import. Reliable paths are (1) paste the
+  layout into a WeChat draft first, save it, then use 秀米's “导入公众号图文” with the draft
+  or article link; or (2) place the fragment into 秀米's “插入HTML代码” component and verify
+  the result. Treat either as a starting point that the user finishes inside 秀米.
+
+Editor menus change; state that the names above reflect the versions checked when this
+guide was written, and ask the user to confirm the button exists before relying on it.
 
 An image appearing in the desktop editor does not prove it will appear in public preview.
 

@@ -53,8 +53,11 @@ Keep image preparation separate from image delivery:
 - final acceptance requires `mmbiz.qpic.cn` (or a confirmed material-library asset) plus a
   phone preview.
 
-If local images remain unresolved, the preview must disable copying and tell the user which
-handoff is still required. Never use “图片加载完成” as evidence that the images are paste-ready.
+If local images remain unresolved, the preview disables the image-bearing copy, keeps the
+no-image copy and HTML downloads available, and tells the user which handoff is still
+required. In that case the working answer is: upload the web copies to the material library
+in article order, copy the no-image version, and insert each image into its numbered slot.
+Never use “图片加载完成” as evidence that the images are paste-ready.
 
 ## Caption rules
 

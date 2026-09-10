@@ -11,8 +11,23 @@ and uses semantic versioning for public releases.
 - Monthly Dependabot checks for Python packages and GitHub Actions.
 - macOS to the Python 3.10/3.12 CI matrix.
 - Optional `cdn_map.json` substitution for local image sources during preview copying.
+- Five new style presets (`campus`, `festival`, `tech`, `ink`, `magazine`) alongside the
+  original three, each with its own palette and default component variants.
+- Manuscript `style` overrides for palette tokens, font, masthead/heading/caption/quote/callout
+  variants, paragraph metrics, image inset, and spacing density; unknown or unsafe values fail.
+- `scripts/gallery.py` renders one manuscript across presets into a side-by-side index page.
+- `article.noimage.html` (numbered image slots) and `article.import.html` (document-wrapped
+  fragment) outputs; preview buttons for copy without images and HTML download.
+- Documentation for the three delivery routes, including 135编辑器 HTML code mode and the
+  秀米 path through a WeChat draft.
+- A fourth synthetic fixture exercising the `campus` preset with overrides, and a style
+  matrix regression that audits every preset and variant with and without images.
 
 ### Changed
+
+- The layout guide now states that the user's brief decides the visual direction and maps
+  common Chinese mood words to presets and knobs; SKILL.md no longer defaults silently to
+  `academy` for non-institutional content.
 
 - Expanded the documented security boundaries for untrusted media, local executables,
   overwrite behavior, previews, and generated reports.

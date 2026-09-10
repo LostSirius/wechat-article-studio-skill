@@ -18,6 +18,7 @@ dynamic = ["version"]
 [project.scripts]
 wechat-article-build = "wechat_article_studio.build:main"
 wechat-article-render = "wechat_article_studio.render:main"
+wechat-article-gallery = "wechat_article_studio.gallery:main"
 wechat-article-audit = "wechat_article_studio.audit:main"
 wechat-article-images = "wechat_article_studio.prepare_images:main"
 wechat-article-slideshow = "wechat_article_studio.slideshow:main"

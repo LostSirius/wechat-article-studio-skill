@@ -20,8 +20,8 @@ Produce an article that reads as edited by a human newsroom and looks intentiona
 Read only what the task needs:
 
 - Writing, fact control, and low-AI editing: [guides/editorial.md](guides/editorial.md)
-- Layout recipes and manuscript schema: [guides/layout.md](guides/layout.md)
-- WeChat HTML restrictions and copy workflow: [guides/compatibility.md](guides/compatibility.md)
+- Style presets, `style` overrides, brief-to-knob mapping, manuscript schema: [guides/layout.md](guides/layout.md)
+- WeChat HTML restrictions and the three delivery routes (copy with images, copy without images, HTML import): [guides/compatibility.md](guides/compatibility.md)
 - Image selection, cropping, GIFs, and CDN handoff: [guides/images.md](guides/images.md)
 - Evaluation rubric and iteration gates: [guides/quality.md](guides/quality.md)
 - Research boundaries and provenance: [guides/research.md](guides/research.md)
@@ -110,15 +110,24 @@ Choose elements because of content shape:
 
 Do not add a dashboard, English labels, numbered chapters, callouts, or decorative cards merely because a template contains them. Three consecutive blocks must not share the same visual density.
 
-### 6. Choose a visual recipe
+### 6. Resolve the visual direction from the brief
 
-Use one recipe from [guides/layout.md](guides/layout.md):
+The user owns the look; this skill owns the execution. Read the brief for mood words,
+colors, audience, and references, then map them with the table in
+[guides/layout.md](guides/layout.md):
 
-- `academy` — university, study tour, institutional reportage; default for campus content.
-- `editorial` — interview, profile, brand story, long-form feature.
-- `minimal` — approved copy where images and whitespace should lead.
+- pick one of the eight presets (`academy`, `editorial`, `minimal`, `campus`, `festival`,
+  `tech`, `ink`, `magazine`) as the starting point;
+- adjust individual knobs in the manuscript `style` object—palette tokens, masthead,
+  heading, caption, quote, callout, paragraph metrics, image inset, density—rather than
+  inventing new HTML;
+- when the user gives no direction, run `python scripts/gallery.py manuscript.json
+  --output-dir gallery`, open `gallery/index.html`, and let them choose a column; do not
+  silently default to `academy` for non-institutional content;
+- state the chosen preset and overrides in the delivery so the user can redirect with one
+  sentence (“更活泼一点” → `pill`/`underline` + `airy`; “更正式” → `frame`/`rule` + indented).
 
-If the user supplies a reference image or post, translate its hierarchy, spacing, palette roles, and component rhythm. Do not copy logos, proprietary illustrations, or distinctive copyrighted artwork.
+If the user supplies a reference image or post, translate its hierarchy, spacing, palette roles, and component rhythm into the same knobs. Do not copy logos, proprietary illustrations, or distinctive copyrighted artwork.
 
 ### 7. Create the manuscript
 
@@ -139,8 +148,10 @@ source-to-URL map with `--cdn-map cdn_map.json`. The preview may also load
 The build pipeline produces:
 
 - `article.fragment.html` — clean WeChat body fragment;
-- `article.preview.html` — browser preview with a copy button;
-- `article.render-report.json` — structure and asset report.
+- `article.noimage.html` — same layout with numbered image slots instead of `<img>`;
+- `article.import.html` — fragment wrapped in a minimal document for HTML-importing editors;
+- `article.preview.html` — browser preview with copy (with/without images) and download actions;
+- `article.render-report.json` — structure, resolved style, and asset report.
 - `audit.json` — deterministic compatibility/editorial report;
 - `mobile-375.png`, `mobile-414.png` — real browser screenshots when Chrome/Edge is available;
 - `build-report.json` — verified artifact paths and screenshot status.
@@ -226,11 +237,17 @@ Give the user:
 - processed asset paths;
 - audit result and what was visually reviewed;
 - unresolved placeholders or facts;
+- chosen preset and `style` overrides, and how to redirect them;
 - explicit image state: local / external HTTPS / WeChat CDN;
-- exact WeChat handoff: upload or map local images → copy the layout → paste into the editor
-  → transfer/re-upload every non-WeChat image → confirm `mmbiz.qpic.cn` → phone preview.
+- the delivery route that matches that state, from [guides/compatibility.md](guides/compatibility.md):
+  - **A** images have HTTPS URLs → “复制排版（含图片链接）” → paste → transfer in the editor;
+  - **B** images are local only → upload to the material library → “复制无图版本” → paste →
+    insert each image into its numbered slot;
+  - **C** the user edits in 135编辑器 or 秀米 → “下载 HTML” / `article.import.html` → 135编辑器
+    【HTML】code mode or “导入文章”; 秀米 via a WeChat draft link and “导入公众号图文”;
+- in every route: confirm `mmbiz.qpic.cn` → phone preview.
 
-The copy action copies HTML layout and image URLs, not local image binaries. Do not say
+The copy actions copy HTML layout and image URLs, not local image binaries. Do not say
 images are safely pasted or published merely because they appear in the browser or desktop
 editor. Final public images should resolve from `mmbiz.qpic.cn` or the official material
 library.

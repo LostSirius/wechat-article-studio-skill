@@ -22,13 +22,20 @@ and treats WeChat paste/CDN/phone preview as required manual delivery steps.
 
 Core capabilities:
 
-- `academy`, `editorial`, and `minimal` editorial recipes;
+- eight style presets (`academy`, `editorial`, `minimal`, `campus`, `festival`, `tech`,
+  `ink`, `magazine`) plus per-knob `style` overrides—palette tokens, font, masthead, heading,
+  caption, quote, callout, paragraph metrics, image inset, density—so the user's brief, not
+  the tool, decides the look;
+- `gallery.py` renders one manuscript in every preset for side-by-side selection;
 - structured JSON manuscript to conservative inline-style HTML;
+- three delivery routes: copy with image links, copy without images (numbered slots for
+  material-library insertion), and HTML download for 135editor code mode or a Xiumi import
+  via a WeChat draft;
 - strict tag, attribute, and CSS auditing;
 - EXIF correction, embedded sRGB ICC, and JPEG 4:4:4 export;
 - subject-aware cover/contain slideshow GIF generation;
 - synthetic regressions on Windows, Ubuntu, and macOS plus repository hygiene scanning;
-- seven Python CLIs plus one lightweight version module under `scripts/`.
+- eight Python CLIs plus one lightweight version module under `scripts/`.
 
 ## Install and test
 
@@ -71,14 +78,32 @@ python3 scripts/build.py examples/manuscript.json --output-dir output --no-scree
 python3 scripts/audit.py output/article.fragment.html --manuscript examples/manuscript.json
 ```
 
-The build writes a clean fragment, browser preview, render report, audit report, and build
-report. Screenshots are optional when Chrome or Edge is available.
+The build writes a clean fragment, a no-image fragment with numbered slots, an importable
+HTML document, a browser preview, a render report, an audit report, and a build report.
+Screenshots are optional when Chrome or Edge is available.
+
+Undecided about the look? Render every preset side by side and pick one:
+
+```bash
+python3 scripts/gallery.py examples/manuscript.json --output-dir gallery
+```
+
+Then set `theme` (and optional `style` overrides) in the manuscript:
+
+```json
+{"theme": "campus", "style": {"heading": "pill", "density": "airy", "palette": {"accent": "#2f8f6b"}}}
+```
+
+See [guides/layout.md](guides/layout.md) for every knob and for the brief-to-knob table.
 
 ## Important limits
 
 A static score of 100 means only that the encoded audit rules passed. It is not WeChat
-certification. The copy button copies HTML layout and image URLs, not local JPG, PNG, or GIF
-files. The preview disables copying when unresolved local/relative images remain. An optional
+certification. Copy actions copy HTML layout and image URLs, not local JPG, PNG, or GIF
+files. When unresolved local images remain, the preview disables the image-bearing copy and
+offers “copy without images” (each image becomes a numbered slot for material-library
+insertion) and HTML downloads for 135editor's 【HTML】 code mode; Xiumi has no whole-article
+HTML import, so route through a WeChat draft and “导入公众号图文”. An optional
 `--cdn-map cdn_map.json` can substitute approved HTTPS URLs, but non-WeChat URLs still require
 transfer/re-upload in the editor. Before publishing, confirm final `mmbiz.qpic.cn` delivery
 and run a phone preview.

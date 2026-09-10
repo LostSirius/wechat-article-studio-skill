@@ -59,12 +59,17 @@ def render_fixtures(temp: Path) -> list[dict]:
         preview = (output / "article.preview.html").read_text(encoding="utf-8")
         if "<script" in fragment or "<style" in fragment:
             raise AssertionError(f"{fixture.name} leaked preview code into fragment")
-        if "复制排版到公众号" not in preview:
-            raise AssertionError(f"{fixture.name} preview has no copy action")
+        if "复制排版（含图片链接）" not in preview or "复制无图版本" not in preview:
+            raise AssertionError(f"{fixture.name} preview lacks the two copy actions")
+        if "下载 HTML" not in preview or "135编辑器" not in preview:
+            raise AssertionError(f"{fixture.name} preview lacks the HTML import route")
         if "复制 HTML 不会复制图片文件" not in preview:
             raise AssertionError(f"{fixture.name} preview has no local-image warning")
         if "COPY_BUTTON.disabled=true" not in preview:
             raise AssertionError(f"{fixture.name} preview has no unresolved-image guard")
+        for name in ("article.noimage.html", "article.import.html"):
+            if not (output / name).exists():
+                raise AssertionError(f"{fixture.name} did not produce {name}")
         build_report = json.loads((output / "build-report.json").read_text(encoding="utf-8"))
         if build_report["screenshot_status"] != "disabled":
             raise AssertionError(f"{fixture.name} build report has wrong screenshot status")
@@ -138,6 +143,97 @@ def cdn_map_test(temp: Path) -> dict:
     if "classifyAssets" not in preview or "COPY_BUTTON.disabled=true" not in preview:
         raise AssertionError("preview did not embed image-source safeguards")
     return {"mapping_embedded": True, "local_source_preserved": True}
+
+
+def audit_fragment(path: Path) -> dict:
+    result = run([sys.executable, str(SCRIPTS / "audit.py"), str(path), "--json"], expected={0, 1})
+    return json.loads(result.stdout)
+
+
+def style_matrix_test(temp: Path) -> dict:
+    """Every preset and every component variant must stay inside the strict WeChat profile."""
+    sys.path.insert(0, str(SCRIPTS))
+    import render  # noqa: E402  (local import keeps the CLI scripts import-free)
+
+    base = json.loads((EVALS / "academic-news.json").read_text(encoding="utf-8"))
+    wechat_src = "https://" + "mmbiz.qpic.cn/synthetic/photo.jpg"
+    base["hero"] = {"src": wechat_src, "alt": "Synthetic hero", "caption": "Synthetic caption", "full": True}
+    base["sections"][0]["blocks"].append(
+        {"type": "image", "src": wechat_src, "alt": "Synthetic inset", "caption": "Inset caption"}
+    )
+    base["sections"][0]["blocks"].append({"type": "callout", "label": "提示", "text": "变体测试"})
+    base["sections"][0]["blocks"].append({"type": "quote", "text": "变体测试引语。", "author": "虚构受访者"})
+
+    cases: list[tuple[str, dict]] = [(f"preset-{name}", {"theme": name}) for name in render.PRESETS]
+    for key, options in render.VARIANT_OPTIONS.items():
+        for option in options:
+            cases.append((f"{key}-{option}", {"theme": "academy", "style": {key: option}}))
+    cases.append(
+        (
+            "overrides",
+            {
+                "theme": "minimal",
+                "style": {
+                    "palette": {"accent": "#2f6fed", "ink": "#10233f"},
+                    "font": "Georgia, PingFang SC, serif",
+                    "density": "airy",
+                    "image_inset": 24,
+                    "paragraph": {"indent": False, "size": 16, "line_height": 1.8, "align": "left"},
+                },
+            },
+        )
+    )
+    checked = 0
+    for name, patch in cases:
+        manuscript = {**base, **patch}
+        manuscript_path = temp / f"style-{name}.json"
+        manuscript_path.write_text(json.dumps(manuscript, ensure_ascii=False), encoding="utf-8")
+        output = temp / f"style-{name}"
+        run([sys.executable, str(SCRIPTS / "render.py"), str(manuscript_path), "--output-dir", str(output)])
+        for artifact in ("article.fragment.html", "article.noimage.html"):
+            report = audit_fragment(output / artifact)
+            if report["fatal"]:
+                raise AssertionError(f"{name}/{artifact} has fatal audit issues: {report['fatal']}")
+        noimage = (output / "article.noimage.html").read_text(encoding="utf-8")
+        if "<img" in noimage or "此处插入图片" not in noimage:
+            raise AssertionError(f"{name} no-image version still contains images or lacks slots")
+        checked += 1
+
+    for bad in (
+        {"theme": "nope"},
+        {"style": {"heading": "neon"}},
+        {"style": {"palette": {"accent": "rgba(0,0,0,.5)"}}},
+        {"style": {"unknown": 1}},
+    ):
+        manuscript_path = temp / "style-bad.json"
+        manuscript_path.write_text(json.dumps({**base, **bad}, ensure_ascii=False), encoding="utf-8")
+        run(
+            [sys.executable, str(SCRIPTS / "render.py"), str(manuscript_path), "--output-dir", str(temp / "style-bad")],
+            expected={1},
+        )
+    return {"cases": checked, "presets": len(render.PRESETS), "invalid_styles_rejected": True}
+
+
+def gallery_test(temp: Path) -> dict:
+    output = temp / "gallery"
+    run(
+        [
+            sys.executable,
+            str(SCRIPTS / "gallery.py"),
+            str(EVALS / "profile-interview.json"),
+            "--output-dir",
+            str(output),
+            "--presets",
+            "academy,campus,ink",
+        ]
+    )
+    index = (output / "index.html").read_text(encoding="utf-8")
+    if index.count("<iframe") != 3:
+        raise AssertionError("gallery index does not embed one preview per preset")
+    for name in ("academy", "campus", "ink"):
+        if not (output / name / "article.preview.html").exists():
+            raise AssertionError(f"gallery did not render preset {name}")
+    return {"presets": 3}
 
 
 def slideshow_test(temp: Path) -> dict:
@@ -214,10 +310,16 @@ def main() -> int:
         temp = Path(directory)
         fixture_reports = render_fixtures(temp)
         invalid_fragment_test(temp)
-        hygiene_result = run([sys.executable, str(SCRIPTS / "hygiene.py"), str(ROOT), "--json"])
-        hygiene_report = json.loads(hygiene_result.stdout)
-        result = {"fixtures": fixture_reports, "invalid_html_rejected": True, "repository_hygiene": hygiene_report["files_clean"]}
+        hygiene_script = SCRIPTS / "hygiene.py"
+        if hygiene_script.exists():
+            hygiene_result = run([sys.executable, str(hygiene_script), str(ROOT), "--json"])
+            hygiene: object = json.loads(hygiene_result.stdout)["files_clean"]
+        else:  # installed skill copies ship without the repository-only hygiene scanner
+            hygiene = "skipped"
+        result = {"fixtures": fixture_reports, "invalid_html_rejected": True, "repository_hygiene": hygiene}
         result["cdn_map"] = cdn_map_test(temp)
+        result["style_matrix"] = style_matrix_test(temp)
+        result["gallery"] = gallery_test(temp)
         result["image_prepare"] = image_prepare_test(temp)
         if args.with_slideshow:
             result["slideshow"] = slideshow_test(temp)

@@ -107,6 +107,9 @@ Use at least three fixtures:
 3. **Profile/interview**  
    Dialogue, attributed quotations, narrative scenes, editorial recipe.
 
+4. **Club recap with style overrides**  
+   Non-institutional voice, `campus` preset, overridden accent and variants, airy density.
+
 For each fixture:
 
 1. generate a manuscript without manual HTML;

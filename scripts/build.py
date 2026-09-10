@@ -98,6 +98,8 @@ def main() -> int:
         render_command.extend(["--cdn-map", str(cdn_map_path)])
     run(render_command)
     fragment = output / "article.fragment.html"
+    noimage = output / "article.noimage.html"
+    import_document = output / "article.import.html"
     preview = output / "article.preview.html"
     audit_result = run(
         [
@@ -138,6 +140,8 @@ def main() -> int:
         "output_dir": str(output),
         "cdn_map": str(cdn_map_path) if cdn_map_path.exists() else None,
         "fragment": str(fragment),
+        "noimage": str(noimage),
+        "import_document": str(import_document),
         "preview": str(preview),
         "audit": str(audit_path),
         "readiness": audit["readiness"],
