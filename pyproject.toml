@@ -11,7 +11,7 @@ license = { file = "LICENSE" }
 authors = [{ name = "LostSirius" }]
 dependencies = [
   "Pillow>=12.2,<13",
-  "imageio-ffmpeg>=0.6,<0.7",
+  "imageio-ffmpeg>=0.6,<0.8",
 ]
 dynamic = ["version"]
 
